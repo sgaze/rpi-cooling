@@ -31,7 +31,17 @@ RELAY_GAIN = 4  # GPIO4 (7)
 
 
 def loop(logger: Logger, temp_low: float, temp_high: float, delay: int):
+    """Cooling loop
 
+    Args:
+        logger (Logger): Logger
+        temp_low (float): Lower temperature
+        temp_high (float): Higher temperature
+        delay (int): Loop delay
+
+    Raises:
+        err: Unexpected error
+    """
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(RELAY_GAIN, GPIO.OUT)
     # GPIO.setwarnings(False)
