@@ -22,16 +22,14 @@
 
 from time import sleep
 from datetime import datetime
-from logging import Logger
 import RPi.GPIO as GPIO
 import Adafruit_DHT
+import config
 
 TEMP_SENSOR = Adafruit_DHT.DHT22
-TEMP_PROBE_PIN = 18  # GPIO18, pin 12
-RELAY_GAIN = 4  # GPIO4 (7)
 
 
-def loop(logger: Logger, temp_low: float, temp_high: float, delay: int):
+def loop():
     """Cooling loop
 
     Args:
@@ -43,21 +41,27 @@ def loop(logger: Logger, temp_low: float, temp_high: float, delay: int):
     Raises:
         err: Unexpected error
     """
+    relay_gain = config.RELAY_GAIN
+    temp_low = config.TEMP_LOW
+    temp_high = config.TEMP_HIGH
+    delay = config.DELAY
+    logger = config.LOGGER
+
     GPIO.setmode(GPIO.BCM)
-    GPIO.setup(RELAY_GAIN, GPIO.OUT)
+    GPIO.setup(relay_gain, GPIO.OUT)
     # GPIO.setwarnings(False)
 
     logger.info('Starting: Min=%s  Max=%s', temp_low, temp_high)
 
     try:
-        last_probe_timestamp = None
+        last_refresh_time = None
+        refresh_switch = True
 
         while True:
-
-            relay_state = GPIO.input(RELAY_GAIN)
+            relay_state = GPIO.input(relay_gain)
 
             humidity, temperature = Adafruit_DHT.read_retry(
-                TEMP_SENSOR, TEMP_PROBE_PIN)
+                TEMP_SENSOR, config.TEMP_PROBE_PIN)
 
             if (
                 humidity is not None
@@ -71,10 +75,9 @@ def loop(logger: Logger, temp_low: float, temp_high: float, delay: int):
                 ))
 
                 # Switch cooling no more often than every 60s
-                refresh_switch = True
-                if last_probe_timestamp:
-                    probe_difference = (datetime.now() - last_probe_timestamp)
-                    refresh_switch = probe_difference.total_seconds() > 60
+                if last_refresh_time:
+                    refresh_time_diff = (datetime.now() - last_refresh_time)
+                    refresh_switch = refresh_time_diff.total_seconds() > 60
 
                 if refresh_switch:
                     logger.info('Probing: Min=%s  Max=%s | %s',
@@ -86,17 +89,17 @@ def loop(logger: Logger, temp_low: float, temp_high: float, delay: int):
                     ):
                         logger.info(
                             'Starting cooling, target=%s', temp_low)
-                        GPIO.output(RELAY_GAIN, GPIO.HIGH)
+                        GPIO.output(relay_gain, GPIO.HIGH)
                     elif (
                         temperature < temp_low
                         and relay_state
                     ):
                         logger.info(
                             'Stopping cooling, target=%s', temp_high)
-                        GPIO.output(RELAY_GAIN, GPIO.LOW)
+                        GPIO.output(relay_gain, GPIO.LOW)
 
                     # Last successful switch refresh
-                    last_probe_timestamp = datetime.now()
+                    last_refresh_time = datetime.now()
 
             else:
                 logger.warn('Failed to get reading. Try again!')
