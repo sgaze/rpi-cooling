@@ -6,6 +6,6 @@ import config
 import cooling
 
 logging.basicConfig(format='%(asctime)s %(message)s',
-            filename=config.LOG_FILE,
+            filename=config.LOG_FILE_TOOLBOX,
             level=logging.INFO)
 cooling.loop()

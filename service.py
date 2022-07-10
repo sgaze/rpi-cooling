@@ -13,7 +13,7 @@ def run():
     """
     with daemon.DaemonContext():
         logging.basicConfig(format='%(asctime)s %(message)s',
-                    filename=config.LOG_FILE,
+                    filename=config.LOG_FILE_SERVICE,
                     level=logging.INFO)
         cooling.loop()
 
