@@ -51,11 +51,11 @@ def publish_cloud_watch(timestamp: datetime, temperature: float):
         Namespace='RaspberryPi',
         MetricData=[
             {
-                'MetricName': 'Cooling',
+                'MetricName': 'Temperature',
                 'Dimensions': [
                     {
-                        'Name': 'Probe1',
-                        'Value': 'Temperature',
+                        'Name': 'Cooling',
+                        'Value': 'DHT22',
                     }
                 ],
                 'Timestamp': timestamp.isoformat(),
