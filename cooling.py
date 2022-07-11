@@ -22,11 +22,49 @@
 
 from time import sleep
 from datetime import datetime
+from tokenize import String
 import RPi.GPIO as GPIO
 import Adafruit_DHT
 import config
 
+import random
+import boto3
+from botocore.config import Config
+
 TEMP_SENSOR = Adafruit_DHT.DHT22
+
+
+my_config = Config(
+    region_name='eu-west-1'
+)
+cw = boto3.client('cloudwatch', config=my_config)
+
+
+def publish_cloud_watch(timestamp: datetime, temperature: float):
+    """Publish to CloudWatch
+
+    Args:
+        timestamp (datetime): Timestamp
+        temperature (float): Temperature
+    """
+    response = cw.put_metric_data(
+        Namespace='RaspberryPi',
+        MetricData=[
+            {
+                'MetricName': 'Cooling',
+                'Dimensions': [
+                    {
+                        'Name': 'Probe1',
+                        'Value': 'Temperature',
+                    }
+                ],
+                'Timestamp': timestamp.isoformat(),
+                'Value': temperature,
+                'Unit': 'Count',
+                'StorageResolution': 1,
+            },
+        ]
+    )
 
 
 def loop():
@@ -58,6 +96,7 @@ def loop():
         refresh_switch = True
 
         while True:
+            now = datetime.now()
             relay_state = GPIO.input(relay_gain)
 
             humidity, temperature = Adafruit_DHT.read_retry(
@@ -76,11 +115,18 @@ def loop():
 
                 # Switch cooling no more often than every 60s
                 if last_refresh_time:
-                    refresh_time_diff = (datetime.now() - last_refresh_time)
+                    refresh_time_diff = (now - last_refresh_time)
                     refresh_switch = refresh_time_diff.total_seconds() > 60
 
                 if refresh_switch:
-                    logger.info('Probing: Min=%s  Max=%s | %s',
+                    # Publish to CloudWatch
+                    try:
+                        publish_cloud_watch(now, temperature)
+                        logger.info('Published %s on CloudWatch', temperature)
+                    except Exception as err:
+                        logger.warn('Failed to publish %s on CloudWatch', temperature)
+
+                    logger.info('Device state: Min=%s  Max=%s | %s',
                                 temp_low, temp_high, system_status)
 
                     if (
@@ -99,7 +145,7 @@ def loop():
                         GPIO.output(relay_gain, GPIO.LOW)
 
                     # Last successful switch refresh
-                    last_refresh_time = datetime.now()
+                    last_refresh_time = now
 
             else:
                 logger.warn('Failed to get reading. Try again!')
