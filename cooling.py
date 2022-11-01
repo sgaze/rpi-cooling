@@ -22,14 +22,12 @@
 
 from time import sleep
 from datetime import datetime
-from tokenize import String
 import RPi.GPIO as GPIO
 import Adafruit_DHT
-import config
-
-import random
 import boto3
 from botocore.config import Config
+import config
+
 
 TEMP_SENSOR = Adafruit_DHT.DHT22
 
@@ -40,13 +38,15 @@ my_config = Config(
 cw = boto3.client('cloudwatch', config=my_config)
 
 
-def publish_cloud_watch(timestamp: datetime, temperature: float):
+def publish_cloud_watch(timestamp: datetime, temperature: float, humidity: float):
     """Publish to CloudWatch
 
     Args:
         timestamp (datetime): Timestamp
         temperature (float): Temperature
+        humidity (float): Humidity
     """
+    formatted_timestamp = timestamp.isoformat()
     response = cw.put_metric_data(
         Namespace='RaspberryPi',
         MetricData=[
@@ -61,9 +61,20 @@ def publish_cloud_watch(timestamp: datetime, temperature: float):
                 'Timestamp': timestamp.isoformat(),
                 'Value': temperature,
                 'Unit': 'Count',
-                'StorageResolution': 1,
             },
-        ]
+            {
+                'MetricName': 'Humidity',
+                'Dimensions': [
+                    {
+                        'Name': 'Cooling',
+                        'Value': 'DHT22',
+                    }
+                ],
+                'Timestamp': timestamp.isoformat(),
+                'Value': humidity,
+                'Unit': 'Count',
+            },
+        ],
     )
 
 
@@ -121,10 +132,11 @@ def loop():
                 if refresh_switch:
                     # Publish to CloudWatch
                     try:
-                        publish_cloud_watch(now, temperature)
-                        logger.info('Published %s on CloudWatch', temperature)
+                        publish_cloud_watch(now, temperature, humidity)
+                        logger.info('Published %s %s on CloudWatch', temperature, humidity)
                     except Exception as err:
-                        logger.warn('Failed to publish %s on CloudWatch', temperature)
+                        logger.warn(
+                            'Failed to publish %s %s on CloudWatch', temperature, humidity)
 
                     logger.info('Device state: Min=%s  Max=%s | %s',
                                 temp_low, temp_high, system_status)
