@@ -1,25 +1,6 @@
 #!/usr/bin/env python3
 # -- coding: utf-8 --
 
-# Dependencies
-# sudo apt install gpiod
-# sudo apt install libgpiod2
-# git clone https://github.com/adafruit/Adafruit_Python_DHT.git
-# cd Adafruit_Python_DHT
-# sudo python setup.py install
-# sudo -H pip install python-daemon
-
-# Logging
-# definition: /etc/logrotate.d/apps
-# destination: /var/log/apps/cooling
-
-# Service
-# definition: /lib/systemd/system/cooling.service
-# sudo systemctl start cooling.service
-
-# Schema
-
-
 from time import sleep
 from datetime import datetime
 import RPi.GPIO as GPIO
