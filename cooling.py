@@ -6,6 +6,7 @@ from datetime import datetime
 import RPi.GPIO as GPIO
 import Adafruit_DHT
 import boto3
+import botocore.exceptions
 from botocore.config import Config
 import config
 
@@ -27,8 +28,7 @@ def publish_cloud_watch(timestamp: datetime, temperature: float, humidity: float
         temperature (float): Temperature
         humidity (float): Humidity
     """
-    formatted_timestamp = timestamp.isoformat()
-    response = cw.put_metric_data(
+    cw.put_metric_data(
         Namespace='RaspberryPi',
         MetricData=[
             {
@@ -115,8 +115,8 @@ def loop():
                     try:
                         publish_cloud_watch(now, temperature, humidity)
                         logger.info('Published %s %s on CloudWatch', temperature, humidity)
-                    except Exception as err:
-                        logger.warn(
+                    except botocore.exceptions.ClientError:
+                        logger.warning(
                             'Failed to publish %s %s on CloudWatch', temperature, humidity)
 
                     logger.info('Device state: Min=%s  Max=%s | %s',
