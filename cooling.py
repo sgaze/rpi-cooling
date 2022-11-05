@@ -62,12 +62,6 @@ def publish_cloud_watch(timestamp: datetime, temperature: float, humidity: float
 def loop():
     """Cooling loop
 
-    Args:
-        logger (Logger): Logger
-        temp_low (float): Lower temperature
-        temp_high (float): Higher temperature
-        delay (int): Loop delay
-
     Raises:
         err: Unexpected error
     """
@@ -141,7 +135,7 @@ def loop():
                     last_refresh_time = now
 
             else:
-                logger.warn('Failed to get reading. Try again!')
+                logger.warning('Failed to get reading. Try again!')
 
             sleep(delay)
 
