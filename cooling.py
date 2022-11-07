@@ -2,7 +2,7 @@
 # -- coding: utf-8 --
 
 from time import sleep
-from datetime import datetime
+from datetime import datetime, timezone
 import RPi.GPIO as GPIO
 import Adafruit_DHT
 import boto3
@@ -82,7 +82,7 @@ def loop():
         refresh_switch = True
 
         while True:
-            now = datetime.now(datetime.timezone.utc)
+            now = datetime.now(timezone.utc)
             relay_state = GPIO.input(relay_gain)
 
             humidity, temperature = Adafruit_DHT.read_retry(
