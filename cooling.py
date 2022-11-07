@@ -108,10 +108,11 @@ def loop():
                     # Publish to CloudWatch
                     try:
                         publish_cloud_watch(now, temperature, humidity)
-                        logger.info('Published {0:0.1f}°C  Humidity={1:0.1f}% on CloudWatch'.format(temperature, humidity))
+                        logger.info(
+                            'Published {0} {1:0.1f}°C  Humidity={2:0.1f}% on CloudWatch'.format(now.isoformat(), temperature, humidity))
                     except botocore.exceptions.ClientError:
                         logger.warning(
-                            'Failed to publish {0:0.1f}°C  Humidity={1:0.1f}% on CloudWatch'.format(temperature, humidity))
+                            'Failed to publish {0} {1:0.1f}°C  Humidity={2:0.1f}% on CloudWatch'.format(now.isoformat(), temperature, humidity))
 
                     logger.info('Device state: Min=%s  Max=%s | %s',
                                 temp_low, temp_high, system_status)
