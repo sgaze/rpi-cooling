@@ -82,7 +82,7 @@ def loop():
         refresh_switch = True
 
         while True:
-            now = datetime.now()
+            now = datetime.now(datetime.timezone.utc)
             relay_state = GPIO.input(relay_gain)
 
             humidity, temperature = Adafruit_DHT.read_retry(
