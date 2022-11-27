@@ -15,8 +15,8 @@ if len(sys.argv) == 3:
     TEMP_LOW = float(sys.argv[1])
     TEMP_HIGH = float(sys.argv[2])
 else:
-    TEMP_LOW = 25
-    TEMP_HIGH = 26
+    TEMP_LOW = 18
+    TEMP_HIGH = 20
 
 # Logger
 LOG_FILE_SERVICE = '/var/log/apps/cooling.log'
