@@ -1,5 +1,12 @@
 # Cooling
 
+POC script to:
+* retrieve temperature and humidity from a DHT22 probe.
+* open relay if temperature goes beyond TEMP_LOW.
+* close relay if temperature goes above TEMP_HIGH.
+* publish temperature and humidity on AWS Cloudwatch.
+
+
 ## Pin schema
 
 * Probe AM2302 (wired DHT22)
@@ -25,10 +32,21 @@ git clone https://github.com/adafruit/Adafruit_Python_DHT.git
 cd Adafruit_Python_DHT
 sudo python setup.py install
 sudo -H pip install python-daemon
+
+python -m pip install boto3
 ```
 
-## Logging
-definition: /etc/logrotate.d/apps
+## Toolbox mode
+`python toolbox.py 18 20`
+
+Logs in /var/log/apps/cooling_toolbox.log
+
+## Service mode
+
+### Logging
+Logs in /var/log/apps/cooling.log
+
+Log rotate definition:
 ```
 cat /etc/logrotate.d/apps
 /var/log/apps/cooling.log {
@@ -40,8 +58,8 @@ cat /etc/logrotate.d/apps
 }
 ```
 
-## Service
-definition: /lib/systemd/system/cooling.service
+### Service
+Service definition: /lib/systemd/system/cooling.service
 ```
 cat /lib/systemd/system/cooling.service
 [Unit]
@@ -51,11 +69,17 @@ Conflicts=getty@tty1.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python /home/sgaze/code/local/cooling/service.py 9 10
+ExecStart=/usr/bin/python <path>/service.py 18 20
 StandardInput=tty-force
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-`sudo systemctl start cooling.service`
+Enable service:
+```
+sudo systemctl daemon-reload
+sudo systemctl enable cooling.service
+sudo systemctl start cooling.service
+sudo systemctl status cooling.service
+```
