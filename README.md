@@ -32,8 +32,7 @@ git clone https://github.com/adafruit/Adafruit_Python_DHT.git
 cd Adafruit_Python_DHT
 sudo python setup.py install
 sudo -H pip install python-daemon
-
-python -m pip install boto3
+sudo -H pip install boto3
 ```
 
 ## Toolbox mode
