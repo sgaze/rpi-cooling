@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import RPi.GPIO as GPIO
 import Adafruit_DHT
 import boto3
-import botocore.exceptions
+# import botocore.exceptions
 from botocore.config import Config
 import config
 
@@ -28,8 +28,10 @@ def publish_cloud_watch(timestamp: datetime, temperature: float, humidity: float
         temperature (float): Temperature
         humidity (float): Humidity
     """
+    log_namespace = config.LOG_NAMESPACE
+
     cw.put_metric_data(
-        Namespace='RaspberryPi',
+        Namespace=log_namespace,
         MetricData=[
             {
                 'MetricName': 'Temperature',

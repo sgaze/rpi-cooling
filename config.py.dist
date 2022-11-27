@@ -21,4 +21,5 @@ else:
 # Logger
 LOG_FILE_SERVICE = '/var/log/apps/cooling.log'
 LOG_FILE_TOOLBOX = '/var/log/apps/cooling_toolbox.log'
+LOG_NAMESPACE = 'RaspberryPi'
 LOGGER = logging.getLogger('cooling')
