@@ -18,6 +18,7 @@ my_config = Config(
     region_name='eu-west-1'
 )
 cw = boto3.client('cloudwatch', config=my_config)
+cw_logs = boto3.client('logs', config=my_config)
 
 
 def publish_cloud_watch(timestamp: datetime, temperature: float, humidity: float):
@@ -56,6 +57,22 @@ def publish_cloud_watch(timestamp: datetime, temperature: float, humidity: float
                 'Timestamp': timestamp.isoformat(),
                 'Value': humidity,
                 'Unit': 'Count',
+            },
+        ],
+    )
+
+    timestamp_ms = int(datetime.timestamp(timestamp) * 1000)
+    cw_logs.put_log_events(
+        logGroupName='Cooling',
+        logStreamName='CoolingLogStream',
+        logEvents=[
+            {
+                'timestamp': timestamp_ms,
+                'message': 'Temp={0:0.1f}°C'.format(temperature)
+            },
+            {
+                'timestamp': timestamp_ms,
+                'message': 'Humidity={0:0.1f}%'.format(humidity)
             },
         ],
     )
@@ -117,13 +134,14 @@ def loop():
                                 humidity
                             ))
                     # except botocore.exceptions.ClientError:
-                    except Exception:
+                    except Exception as err:
                         logger.warning(
                             'Failed to publish {0} {1:0.1f}°C  Humidity={2:0.1f}% on CloudWatch'.format(
                                 now.isoformat(),
                                 temperature,
                                 humidity
                             ))
+                        logger.error(err)
 
                     logger.info('Device state: Min=%s  Max=%s | %s',
                                 temp_low, temp_high, system_status)
