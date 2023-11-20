@@ -3,6 +3,7 @@
 
 from time import sleep
 from datetime import datetime, timezone
+import json
 import RPi.GPIO as GPIO
 import Adafruit_DHT
 import boto3
@@ -68,11 +69,11 @@ def publish_cloud_watch(timestamp: datetime, temperature: float, humidity: float
         logEvents=[
             {
                 'timestamp': timestamp_ms,
-                'message': 'Temp={0:0.1f}°C'.format(temperature)
-            },
-            {
-                'timestamp': timestamp_ms,
-                'message': 'Humidity={0:0.1f}%'.format(humidity)
+                'message': json.dumps({
+                    "host": log_namespace,
+                    "temperature_celsius": temperature,
+                    "humidity_percent": humidity,
+                })
             },
         ],
     )
